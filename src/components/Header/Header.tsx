@@ -3,6 +3,7 @@
 import { ButtonItems } from "../../utils/buttonItems";
 import ButtonItem from "../ButtonItem/ButtonItem";
 import ThemeChanger from "../ThemeChanger/ThemeChanger";
+import TextColorChanger from "../TextColorChanger/TextColorChanger";
 
 const Header = () => {
   return (
@@ -11,6 +12,7 @@ const Header = () => {
         <ButtonItem key={item.title} icon={item.icon} onClickButton={item.onClickButton} title={item.title} />
       ))}
       <ThemeChanger />
+      <TextColorChanger />
     </header>
   );
 };

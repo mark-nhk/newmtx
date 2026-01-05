@@ -38,14 +38,16 @@ const insertText = (
     selStart: positionCursor.selStart + openText.length,
     selEnd: positionCursor.selEnd + (closeText.length || openText.length),
   });
-  const textField = document.getElementById("textareaID") as HTMLInputElement;
-  setTimeout(() => {
-    textField.setSelectionRange(
-      positionCursor.selStart + (openText?.length || 0),
-      positionCursor.selEnd + (closeText?.length || openText?.length || 0)
-    );
-    textField.focus();
-  }, 10);
+  const textField = document.getElementById("textareaID") as HTMLTextAreaElement | null;
+  if (textField) {
+    setTimeout(() => {
+      textField.setSelectionRange(
+        positionCursor.selStart + (openText?.length || 0),
+        positionCursor.selEnd + (closeText?.length || openText?.length || 0)
+      );
+      textField.focus();
+    }, 10);
+  }
 };
 
 export const ButtonItems = [
@@ -62,14 +64,28 @@ export const ButtonItems = [
     icon: <AiOutlineUndo size={20} />,
     title: "Undo",
     onClickButton: (data: StoreTypes) => {
-      document.execCommand("undo");
+      data.undo();
+      const textField = document.getElementById("textareaID") as HTMLTextAreaElement | null;
+      if (textField) {
+        setTimeout(() => {
+          textField.setSelectionRange(data.positionCursor.selStart, data.positionCursor.selEnd);
+          textField.focus();
+        }, 10);
+      }
     },
   },
   {
     icon: <AiOutlineRedo size={20} />,
     title: "Redo",
     onClickButton: (data: StoreTypes) => {
-      document.execCommand("redo");
+      data.redo();
+      const textField = document.getElementById("textareaID") as HTMLTextAreaElement | null;
+      if (textField) {
+        setTimeout(() => {
+          textField.setSelectionRange(data.positionCursor.selStart, data.positionCursor.selEnd);
+          textField.focus();
+        }, 10);
+      }
     },
   },
   {
@@ -137,11 +153,13 @@ export const ButtonItems = [
       }
       const newData = old.slice(0, selStart) + selected + old.slice(selEnd);
       data.setData(newData);
-      const textField = document.getElementById("textareaID") as HTMLInputElement;
-      setTimeout(() => {
-        textField.setSelectionRange(data.positionCursor.selStart, data.positionCursor.selEnd);
-        textField.focus();
-      }, 100);
+      const textField = document.getElementById("textareaID") as HTMLTextAreaElement | null;
+      if (textField) {
+        setTimeout(() => {
+          textField.setSelectionRange(data.positionCursor.selStart, data.positionCursor.selEnd);
+          textField.focus();
+        }, 100);
+      }
     },
   },
   {
@@ -155,11 +173,13 @@ export const ButtonItems = [
 
       data.setData(newData);
       data.setPositionCursor({ selStart, selEnd });
-      const textField = document.getElementById("textareaID") as HTMLInputElement;
-      setTimeout(() => {
-        textField.setSelectionRange(data.positionCursor.selStart, data.positionCursor.selEnd);
-        textField.focus();
-      }, 10);
+      const textField = document.getElementById("textareaID") as HTMLTextAreaElement | null;
+      if (textField) {
+        setTimeout(() => {
+          textField.setSelectionRange(data.positionCursor.selStart, data.positionCursor.selEnd);
+          textField.focus();
+        }, 10);
+      }
     },
   },
   {
@@ -173,31 +193,48 @@ export const ButtonItems = [
       const newData = old.slice(0, selStart) + old.slice(selStart, selEnd).toLowerCase() + old.slice(selEnd);
       data.setPositionCursor({ selStart, selEnd });
       data.setData(newData);
-      const textField = document.getElementById("textareaID") as HTMLInputElement;
-      setTimeout(() => {
-        textField.setSelectionRange(data.positionCursor.selStart, data.positionCursor.selEnd);
-        textField.focus();
-      }, 10);
+      const textField = document.getElementById("textareaID") as HTMLTextAreaElement | null;
+      if (textField) {
+        setTimeout(() => {
+          textField.setSelectionRange(data.positionCursor.selStart, data.positionCursor.selEnd);
+          textField.focus();
+        }, 10);
+      }
     },
   },
   {
     icon: <MdContentCopy size={20} />,
     title: "Copy",
     onClickButton: (data: StoreTypes) => {
-      if (data.data.trim().length > 0) navigator.clipboard.writeText(data.data);
+      if (data.data.trim().length > 0 && navigator.clipboard) {
+        navigator.clipboard.writeText(data.data).catch((error) => {
+          if (process.env.NODE_ENV === "development") {
+            console.error("Failed to copy to clipboard:", error);
+          }
+        });
+      }
     },
   },
   {
     icon: <MdContentPasteGo size={20} />,
     title: "Paste",
     onClickButton: (data: StoreTypes) => {
-      navigator.clipboard.readText().then((clip) => {
-        let selStart = data.positionCursor.selStart;
-        let selEnd = data.positionCursor.selEnd;
-        let old = data.data;
-        const newData = old.slice(0, selStart) + clip + old.slice(selEnd);
-        data.setData(newData);
-      });
+      if (navigator.clipboard) {
+        navigator.clipboard
+          .readText()
+          .then((clip) => {
+            let selStart = data.positionCursor.selStart;
+            let selEnd = data.positionCursor.selEnd;
+            let old = data.data;
+            const newData = old.slice(0, selStart) + clip + old.slice(selEnd);
+            data.setData(newData);
+          })
+          .catch((error) => {
+            if (process.env.NODE_ENV === "development") {
+              console.error("Failed to read from clipboard:", error);
+            }
+          });
+      }
     },
   },
   {

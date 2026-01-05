@@ -46,15 +46,15 @@ const ThemeChanger = () => {
   useEffect(() => {
     const theme = themes.find((c) => c.name === themeColor);
     if (theme) {
-      const setVariables = (vars: any) =>
-        Object.entries(vars).forEach((v: any) => document.documentElement.style.setProperty(v[0], v[1]));
-      setVariables(theme?.color);
+      const setVariables = (vars: Record<string, string>) =>
+        Object.entries(vars).forEach(([key, value]) => document.documentElement.style.setProperty(key, value));
+      setVariables(theme.color);
     }
   }, [themeColor]);
   return (
     <div className="flex items-center">
       <select
-        className="bg-second-color text-text-color outline-none rounded h-[35px] min-w-[100px] w-full max-w--[200px] px-2"
+        className="bg-second-color text-text-color outline-none rounded h-[35px] min-w-[100px] w-full max-w-[200px] px-2"
         onChange={(e) => setThemeColor(e.currentTarget.value)}
         value={themeColor}
       >

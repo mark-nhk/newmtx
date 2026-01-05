@@ -41,10 +41,34 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./serviceWorker.js').then((reg) => {
-          console.log('Worker Registered');
-        }).catch(err => { console.log('Error in service worker', err); })
-      })
+        // Detect base path (works for both dev and GitHub Pages)
+        const basePath = window.location.pathname.split('/').slice(0, -1).join('/') || '';
+        const swPath = basePath ? `${basePath}/serviceWorker.js` : './serviceWorker.js';
+        const scope = basePath ? `${basePath}/` : './';
+        
+        navigator.serviceWorker.register(swPath, { scope: scope })
+          .then((registration) => {
+            // Service worker registered successfully
+            // Check for updates
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    // New service worker available
+                    // Optionally notify user (commented out to avoid interrupting user)
+                    // if (confirm('New version available! Reload to update?')) {
+                    //   window.location.reload();
+                    // }
+                  }
+                });
+              }
+            });
+          })
+          .catch((error) => {
+            // Silently fail - service worker might not be available in all contexts
+          });
+      });
     }
   </script>
 </body>
